@@ -20,8 +20,8 @@ A command-line tool to download YouTube videos as MP4 or extract audio as MP3.
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/youtube-video-downloader.git
-cd youtube-video-downloader
+git clone https://github.com/YOUR_USERNAME/youtube--downloader.git
+cd youtube-downloader
 ```
 
 ### 2. Create and activate a virtual environment
@@ -160,7 +160,7 @@ python youtube_downloader.py "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --inf
 ## Project Structure
 
 ```
-youtube-video-downloader/
+youtube-downloader/
 │
 ├── youtube_downloader.py    # Main application script
 ├── requirements.txt          # Python dependencies
