@@ -7,6 +7,8 @@ A simple and efficient tool to download YouTube videos in MP4 or MP3 format.
 import os
 import sys
 import argparse
+import time
+from collections import deque
 from pathlib import Path
 
 try:
@@ -29,6 +31,12 @@ class YouTubeDownloader:
         """
         self.output_path = Path(output_path)
         self.output_path.mkdir(exist_ok=True)
+        
+        # Progress tracking for stable ETA calculation
+        self.speed_history = deque(maxlen=10)  # Keep last 10 speed samples
+        self.last_downloaded = 0
+        self.last_time = 0
+        self.start_time = 0
     
     def download_video(self, url, format_type='mp4', quality='best'):
         """
@@ -104,15 +112,86 @@ class YouTubeDownloader:
             return True
     
     def _progress_hook(self, d):
-        """Display download progress."""
+        """Display download progress with accurate ETA."""
         if d['status'] == 'downloading':
-            if 'total_bytes' in d:
-                percent = d['downloaded_bytes'] / d['total_bytes'] * 100
-                print(f"\rProgress: {percent:.1f}%", end='', flush=True)
-            elif '_percent_str' in d:
-                print(f"\rProgress: {d['_percent_str']}", end='', flush=True)
+            current_time = time.time()
+            downloaded = d.get('downloaded_bytes', 0)
+            total = d.get('total_bytes') or d.get('total_bytes_estimate', 0)
+            
+            # Initialize timing on first call
+            if self.last_time == 0:
+                self.last_time = current_time
+                self.last_downloaded = downloaded
+                self.start_time = current_time
+                return
+            
+            # Calculate current speed (bytes per second)
+            time_diff = current_time - self.last_time
+            if time_diff > 0.5:  # Update every 0.5 seconds to reduce fluctuation
+                bytes_diff = downloaded - self.last_downloaded
+                current_speed = bytes_diff / time_diff
+                
+                # Add to speed history for smoothing
+                self.speed_history.append(current_speed)
+                
+                # Update last values
+                self.last_time = current_time
+                self.last_downloaded = downloaded
+                
+                # Calculate smoothed average speed
+                if len(self.speed_history) > 0:
+                    avg_speed = sum(self.speed_history) / len(self.speed_history)
+                    
+                    # Calculate progress percentage
+                    if total > 0:
+                        percent = (downloaded / total) * 100
+                        remaining_bytes = total - downloaded
+                        
+                        # Calculate ETA
+                        if avg_speed > 0:
+                            eta_seconds = remaining_bytes / avg_speed
+                            eta_str = self._format_time(eta_seconds)
+                            speed_str = self._format_bytes(avg_speed)
+                            
+                            # Display progress
+                            print(f"\r📥 Progress: {percent:.1f}% | Speed: {speed_str}/s | ETA: {eta_str}", 
+                                  end='', flush=True)
+                        else:
+                            print(f"\r📥 Progress: {percent:.1f}%", end='', flush=True)
+                    else:
+                        # If total is unknown, show downloaded amount and speed
+                        speed_str = self._format_bytes(avg_speed)
+                        downloaded_str = self._format_bytes(downloaded)
+                        print(f"\r📥 Downloaded: {downloaded_str} | Speed: {speed_str}/s", 
+                              end='', flush=True)
+        
         elif d['status'] == 'finished':
+            # Reset progress tracking
+            self.speed_history.clear()
+            self.last_time = 0
+            self.last_downloaded = 0
             print("\n⏳ Processing...", flush=True)
+    
+    def _format_bytes(self, bytes_val):
+        """Format bytes to human readable format."""
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if bytes_val < 1024.0:
+                return f"{bytes_val:.1f} {unit}"
+            bytes_val /= 1024.0
+        return f"{bytes_val:.1f} TB"
+    
+    def _format_time(self, seconds):
+        """Format seconds to human readable time."""
+        if seconds < 60:
+            return f"{int(seconds)}s"
+        elif seconds < 3600:
+            minutes = int(seconds / 60)
+            secs = int(seconds % 60)
+            return f"{minutes}m {secs}s"
+        else:
+            hours = int(seconds / 3600)
+            minutes = int((seconds % 3600) / 60)
+            return f"{hours}h {minutes}m"
     
     def get_video_info(self, url):
         """
