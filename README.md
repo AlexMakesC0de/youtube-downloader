@@ -1,223 +1,89 @@
+<div align="center">
+
 # YouTube Downloader
 
-A command-line tool to download YouTube videos as MP4 or extract audio as MP3.
+**A command line tool that downloads YouTube videos as MP4 or extracts the audio as MP3.**
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)
+![yt-dlp](https://img.shields.io/badge/built%20with-yt--dlp-red)
+![Windows | macOS | Linux](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-555)
+
+</div>
+
+A single Python script built on [yt-dlp](https://github.com/yt-dlp/yt-dlp). Give it a YouTube URL and it saves the video or the audio to a folder, with a progress line that shows percentage, speed and a smoothed ETA.
 
 ## Features
 
-- Download YouTube videos in MP4 format
-- Extract audio and save as MP3
-- Choose video quality (best, worst, 720p, 1080p, etc.)
-- View video information without downloading
-- Custom output directories
+- Download a video as MP4 (best available quality by default).
+- Extract the audio and convert it to MP3 at 192 kbps.
+- Pick a maximum quality: `best`, `worst`, or a height such as `720p` or `1080p`.
+- Show a video's title, uploader, duration, views and the start of its description without downloading.
+- Save to any folder; the default is `downloads/`, created automatically.
+- Accepts `youtube.com` and `youtu.be` links and rejects anything else.
 
-## Requirements
+## Getting started
 
-- Python 3.7 or higher
-- FFmpeg (required for MP3 conversion, so skip if not needed)
+### Prerequisites
 
-## Installation
+- Python 3.11 or newer (current yt-dlp releases require it)
+- [FFmpeg](https://ffmpeg.org/download.html) on your PATH. It is needed for MP3 conversion and for merging the separate video and audio streams YouTube uses for higher quality MP4s.
 
-### 1. Clone the repository
+Install FFmpeg with your package manager:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/youtube--downloader.git
+winget install ffmpeg          # Windows
+brew install ffmpeg            # macOS
+sudo apt install ffmpeg        # Ubuntu / Debian
+sudo pacman -S ffmpeg          # Arch
+```
+
+### Install
+
+```bash
+git clone https://github.com/AlexMakesC0de/youtube-downloader.git
 cd youtube-downloader
-```
-
-### 2. Create and activate a virtual environment
-
-**Linux/macOS:**
-```bash
 python -m venv venv
-source venv/bin/activate
-```
-
-**Windows:**
-```bash
-python -m venv venv
-venv\Scripts\activate
-```
-
-### 3. Install Python dependencies
-
-```bash
+source venv/bin/activate       # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-```
-
-### 4. Install FFmpeg
-
-FFmpeg is required for audio extraction and conversion.
-
-**Arch Linux:**
-```bash
-sudo pacman -S ffmpeg
-```
-
-**Ubuntu/Debian:**
-```bash
-sudo apt update
-sudo apt install ffmpeg
-```
-
-**macOS (using Homebrew):**
-```bash
-brew install ffmpeg
-```
-
-**Windows:**
-Download from [ffmpeg.org](https://ffmpeg.org/download.html) and add to PATH, or use:
-```bash
-winget install ffmpeg
-```
-
-### 5. You're ready to go!
-
-Make sure your virtual environment is activated (you should see `(venv)` in your terminal prompt) before running the downloader.
-
-**To deactivate the virtual environment later:**
-```bash
-deactivate
-```
-
-**To reactivate it:**
-```bash
-source venv/bin/activate  # Linux/macOS
-venv\Scripts\activate     # Windows
 ```
 
 ## Usage
 
-### Basic Commands
+```bash
+python youtube_downloader.py URL [-f {mp4,mp3}] [-q QUALITY] [-o OUTPUT] [--info]
+```
 
-**Download video as MP4 (default):**
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `url` | | YouTube video URL (quote it in your shell) |
+| `-f`, `--format` | `mp4` | `mp4` for video, `mp3` for audio only |
+| `-q`, `--quality` | `best` | `best`, `worst`, or a maximum height like `720p` (MP4 only) |
+| `-o`, `--output` | `downloads` | Folder to save files in |
+| `--info` | | Print video details and exit without downloading |
+
+Examples:
+
 ```bash
 python youtube_downloader.py "https://www.youtube.com/watch?v=VIDEO_ID"
-```
-
-**Download audio as MP3:**
-```bash
 python youtube_downloader.py "https://www.youtube.com/watch?v=VIDEO_ID" -f mp3
-```
-
-**Download video with specific quality:**
-```bash
-python youtube_downloader.py "https://www.youtube.com/watch?v=VIDEO_ID" -f mp4 -q 720p
-```
-
-**Download to custom directory:**
-```bash
-python youtube_downloader.py "https://www.youtube.com/watch?v=VIDEO_ID" -o my_videos
-```
-
-**View video information without downloading:**
-```bash
+python youtube_downloader.py "https://www.youtube.com/watch?v=VIDEO_ID" -q 720p -o my_videos
 python youtube_downloader.py "https://www.youtube.com/watch?v=VIDEO_ID" --info
 ```
 
-### Command-Line Options
-
-```
-positional arguments:
-  url                   YouTube video URL
-
-optional arguments:
-  -h, --help            Show help message and exit
-  -f, --format {mp4,mp3}
-                        Download format (default: mp4)
-  -q, --quality QUALITY
-                        Video quality: best, worst, 720p, 1080p, etc. (default: best)
-  -o, --output OUTPUT   Output directory (default: downloads)
-  --info                Show video information without downloading
-```
-
-## Examples
-
-Download best quality video:
-```bash
-python youtube_downloader.py "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-```
-
-Download 720p video:
-```bash
-python youtube_downloader.py "https://www.youtube.com/watch?v=dQw4w9WgXcQ" -f mp4 -q 720p
-```
-
-Extract audio as MP3:
-```bash
-python youtube_downloader.py "https://www.youtube.com/watch?v=dQw4w9WgXcQ" -f mp3
-```
-
-Download to specific folder:
-```bash
-python youtube_downloader.py "https://www.youtube.com/watch?v=dQw4w9WgXcQ" -o ~/Music
-```
-
-Check video details first:
-```bash
-python youtube_downloader.py "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --info
-```
-
-## Project Structure
-
-```
-youtube-downloader/
-│
-├── youtube_downloader.py    # Main application script
-├── requirements.txt          # Python dependencies
-├── README.md                # This file
-├── LICENSE                  # MIT License
-└── downloads/               # Default download directory (created automatically)
-```
+Files are named after the video title. The script exits with code 0 on success and 1 on failure.
 
 ## Troubleshooting
 
-### "externally-managed-environment" Error
-This happens on modern Linux distributions (Arch, Ubuntu 23.04+, etc.) that protect system Python.
-
-**Solution:** Always use a virtual environment (see Installation step 2):
-```bash
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-### Virtual environment not activated
-If you get "yt-dlp is not installed" but you installed it, make sure your virtual environment is activated. You should see `(venv)` in your terminal prompt.
-
-**Activate it:**
-```bash
-source venv/bin/activate  # Linux/macOS
-venv\Scripts\activate     # Windows
-```
-
-### "yt-dlp is not installed" Error
-Make sure your virtual environment is activated, then run: `pip install yt-dlp`
-
-### "FFmpeg not found" Error (for MP3 downloads)
-Install FFmpeg using the instructions in the Installation section.
-
-### "Unable to extract video data" Error
-- Check if the URL is correct
-- The video might be private or region-restricted
-- Try updating yt-dlp: `pip install --upgrade yt-dlp`
-
-### Download is very slow
-- Check your internet connection
-- Try a different quality setting
-- The video's server might be slow
-
-## Contributing
-
-Contributions are welcome. Feel free to open issues or submit pull requests.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- **"yt-dlp is not installed"**: activate the virtual environment (you should see `(venv)` in your prompt), then run `pip install -r requirements.txt`.
+- **"externally-managed-environment"** on Linux: your distribution protects the system Python. Use the virtual environment from the install steps.
+- **FFmpeg not found**: install FFmpeg and open a new terminal so the PATH change applies.
+- **"Unable to extract video data"**: check the URL, note that private or region-locked videos cannot be downloaded, and update yt-dlp with `pip install --upgrade yt-dlp`. YouTube changes often, and a newer yt-dlp usually fixes it.
 
 ## Disclaimer
 
-This tool is for personal use only. Please respect YouTube's Terms of Service and copyright laws. Only download videos you have the right to download. The developers are not responsible for any misuse of this tool.
+This tool is for personal use. Respect YouTube's Terms of Service and copyright law, and only download videos you have the right to download.
 
-## Acknowledgments
+## License
 
-- Built with [yt-dlp](https://github.com/yt-dlp/yt-dlp)
+[MIT](LICENSE)
